@@ -4,5 +4,7 @@ if(!OPENAI_KEY){
   process.exit(1)
 }
 
+app.use(express.static('.')) // serves index.html if you place it in same folder
+
 $Env:OPENAI_API_KEY="sk-yourkeyhere"
 node server.js
