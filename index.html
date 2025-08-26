@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Time Travel Sandbox</title>
+  <style>
+    :root{
+      --bg:#0b0f17; --panel:#131c2b; --panel-2:#0f1725; --text:#e5ecff; --muted:#9fb3d1; --accent:#6aa7ff; --good:#39d98a; --warn:#ffd166; --bad:#ef476f;
+      --radius:16px; --shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:radial-gradient(1200px 600px at 10% -10%,#13203b 0%,transparent 60%),radial-gradient(1000px 500px at 110% 10%,#1a2b52 0%,transparent 60%),var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+    a{color:var(--accent)}
+    button{cursor:pointer}
+    .wrap{max-width:1100px;margin:0 auto;padding:24px}
+    .card{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .glass{backdrop-filter: blur(6px)}
+    .title{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,.06)}
+    .title h1{margin:0;font-weight:800;letter-spacing:.5px}
+    .title small{color:var(--muted)}
+    .content{padding:22px}
+    .row{display:flex;gap:16px;flex-wrap:wrap}
+    .col{flex:1 1 320px}
+    .center{display:grid;place-items:center}
+    .btn{background:linear-gradient(180deg,#1b2a44,#12203a);border:1px solid rgba(255,255,255,.12);color:var(--text);padding:12px 16px;border-radius:12px;box-shadow:var(--shadow);font-weight:700;letter-spacing:.3px}
+    .btn:hover{transform:translateY(-1px)}
+    .btn.primary{background:linear-gradient(180deg,#2a4c84,#1f3863);border-color:#2a6dff}
+    .btn.ghost{background:transparent;border:1px dashed rgba(255,255,255,.18)}
+    .stack{display:flex;gap:10px;flex-wrap:wrap}
+    input[type="text"], input[type="number"], input[type="password"], textarea, select{
+      width:100%;background:#0e1524;border:1px solid rgba(255,255,255,.08);color:var(--text);padding:12px 14px;border-radius:12px;outline:none
+    }
+    textarea{min-height:120px;resize:vertical}
+    .muted{color:var(--muted)}
+    .tag{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,.12);padding:6px 10px;border-radius:999px;color:var(--muted);font-size:12px}
+    .pill{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.12);padding:8px 12px;border-radius:999px;background:#0f1830}
+    .log{background:#0a1222;border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px;min-height:160px;max-height:260px;overflow:auto}
+    .log p{margin:0 0 10px}
+    .flex{display:flex;gap:14px}
+    .flex-1{flex:1}
+    .right{margin-left:auto}
+    .hidden{display:none}
+
+    /* Modal */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:24px}
+    .modal.open{display:flex}
+    .modal .card{max-width:560px;width:100%}
+
+    /* Title Screen */
+    #screen-title{min-height:100vh;display:grid;place-items:center;padding:32px}
+    .hero{max-width:760px;text-align:center}
+    .hero h1{font-size:clamp(28px,5vw,46px);margin:0 0 8px}
+    .hero p{color:var(--muted);margin:0 0 22px}
+
+    /* Game Screen */
+    #screen-game{display:none}
+    .grid{display:grid;grid-template-columns: 320px 1fr;gap:16px}
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
+    .hud{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .sep{height:1px;background:rgba(255,255,255,.08);margin:14px 0}
+    .kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background:#0a1222;border:1px solid rgba(255,255,255,.15);border-bottom-width:2px;padding:2px 6px;border-radius:6px}
+    .foot{color:#93a7c7;font-size:12px}
+  </style>
+</head>
+<body>
+  <!-- TITLE SCREEN -->
+  <section id="screen-title">
+    <div class="wrap card glass">
+      <div class="content hero">
+        <h1>⏳ Time Travel Sandbox</h1>
+        <p>Type to shape the world, jump between years, and let AI riff with you. Save your progress and pick up where you left off.</p>
+        <div class="stack center">
+          <button id="btnPlay" class="btn primary">Play</button>
+          <button id="btnSaves" class="btn">Saves</button>
+          <span class="pill">Made for GitHub Pages</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAME SCREEN -->
+  <section id="screen-game">
+    <div class="wrap">
+      <div class="card">
+        <div class="title">
+          <h1>⏳ Time Travel Sandbox</h1>
+          <div class="hud">
+            <span class="tag" title="Your chosen name"><strong id="hudName">—</strong></span>
+            <span class="tag" title="Current year"><strong id="hudYear">1984</strong></span>
+            <button class="btn ghost" id="btnBackTitle">Back to Title</button>
+          </div>
+        </div>
+        <div class="content grid">
+          <!-- Left: Controls -->
+          <div class="col">
+            <h3>Time Controls</h3>
+            <div class="stack">
+              <input id="yearInput" type="number" min="-100000" max="300000" value="1984" />
+              <button id="btnJump" class="btn primary">Jump to Year</button>
+            </div>
+            <p class="muted">Tip: press <span class="kbd">Enter</span> in the year box to jump.</p>
+            <div class="sep"></div>
+
+            <h3>AI Console</h3>
+            <div class="stack">
+              <select id="aiProvider">
+                <option value="mock">Mock (offline)</option>
+                <option value="openai">OpenAI API</option>
+              </select>
+              <input id="openaiKey" type="password" placeholder="OpenAI API Key (optional demo)" />
+            </div>
+            <p class="foot">Browser calls will expose the key in DevTools. Use only for local testing. For production, route via a small backend proxy.</p>
+            <div style="height:8px"></div>
+            <textarea id="prompt" placeholder="Describe what you do next… e.g., 'exit the lab and test the machine in 1984' "></textarea>
+            <div class="stack" style="margin-top:10px">
+              <button id="btnAsk" class="btn primary">Send to AI</button>
+              <button id="btnClearLog" class="btn">Clear Log</button>
+            </div>
+            <div class="sep"></div>
+
+            <h3>Save / Load</h3>
+            <div class="stack">
+              <button id="btnQuickSave" class="btn">Quick Save</button>
+              <button id="btnQuickLoad" class="btn">Quick Load</button>
+            </div>
+            <p class="muted">Saves live in your browser using <code>localStorage</code>.</p>
+          </div>
+
+          <!-- Right: World + Log -->
+          <div class="col">
+            <h3>World Log</h3>
+            <div id="log" class="log" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+      <p class="foot" style="margin-top:14px">© <span id="yearNow"></span> YourName — MIT License. Deploy to GitHub Pages by pushing this file as <code>index.html</code> in your repo and enabling Pages.</p>
+    </div>
+  </section>
+
+  <!-- SAVES MODAL -->
+  <div class="modal" id="modalSaves" role="dialog" aria-modal="true" aria-labelledby="savesTitle">
+    <div class="card glass">
+      <div class="title">
+        <h2 id="savesTitle">Create / Load Save</h2>
+        <button class="btn ghost" id="btnCloseSaves">Close</button>
+      </div>
+      <div class="content">
+        <div class="row">
+          <div class="col">
+            <h3>New Player</h3>
+            <div class="stack">
+              <input id="firstName" type="text" placeholder="First name" />
+              <input id="lastName" type="text" placeholder="Last name" />
+            </div>
+            <div style="height:8px"></div>
+            <button id="btnCreatePlayer" class="btn primary">Create Save</button>
+            <p class="muted" id="madeLine" style="display:none;margin-top:10px"></p>
+          </div>
+          <div class="col">
+            <h3>Existing Saves</h3>
+            <div id="saveList" class="log"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========= Utilities =========
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+    const formatDate = (y,m,d) => new Date(y, m-1, d).toLocaleDateString(undefined, {year:'numeric', month:'long', day:'numeric'});
+
+    // Fixed lore date for the required line
+    const LORE_DATE_STR = formatDate(1984, 8, 23); // "August 23, 1984" in user's locale
+
+    const storage = {
+      get(key, fallback){ try{ return JSON.parse(localStorage.getItem(key)) ?? fallback }catch{ return fallback } },
+      set(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+    };
+
+    // ========= State =========
+    let state = {
+      player: storage.get('tt_player', null) || { first:"", last:"" },
+      year: 1984,
+      log: []
+    };
+
+    function saveAll(){
+      storage.set('tt_player', state.player);
+      storage.set('tt_year', state.year);
+      storage.set('tt_log', state.log);
+    }
+    function loadAll(){
+      state.player = storage.get('tt_player', state.player);
+      state.year = storage.get('tt_year', state.year);
+      state.log = storage.get('tt_log', state.log);
+      renderHUD();
+      renderLog();
+    }
+
+    // ========= UI Wiring =========
+    const screenTitle = $('#screen-title');
+    const screenGame = $('#screen-game');
+    const modalSaves = $('#modalSaves');
+
+    $('#btnPlay').addEventListener('click', () => {
+      screenTitle.style.display = 'none';
+      screenGame.style.display = 'block';
+      pushLog(`You awaken in a neon-lit lab in <b>${state.year}</b>. The time core hums.`);
+      renderHUD();
+    });
+
+    $('#btnBackTitle').addEventListener('click', () => {
+      screenGame.style.display = 'none';
+      screenTitle.style.display = 'grid';
+    });
+
+    $('#btnSaves').addEventListener('click', openSaves);
+    $('#btnCloseSaves').addEventListener('click', closeSaves);
+
+    function openSaves(){
+      modalSaves.classList.add('open');
+      refreshSaveList();
+      // Prefill if we already have a name
+      $('#firstName').value = state.player.first || '';
+      $('#lastName').value = state.player.last || '';
+      updateMadeLine();
+    }
+    function closeSaves(){ modalSaves.classList.remove('open'); }
+
+    function updateMadeLine(){
+      const fn = $('#firstName').value.trim();
+      const ln = $('#lastName').value.trim();
+      const p = $('#madeLine');
+      if(fn && ln){
+        p.style.display = 'block';
+        p.innerHTML = `<span class="muted">${fn} ${ln} Has Made A Time Machine on ${LORE_DATE_STR}</span>`;
+      } else {
+        p.style.display = 'none';
+      }
+    }
+    $('#firstName').addEventListener('input', updateMadeLine);
+    $('#lastName').addEventListener('input', updateMadeLine);
+
+    $('#btnCreatePlayer').addEventListener('click', () => {
+      const first = $('#firstName').value.trim();
+      const last = $('#lastName').value.trim();
+      if(!first || !last){ alert('Enter first and last name'); return; }
+      state.player = { first, last };
+      saveAll();
+      refreshSaveList();
+      renderHUD();
+      alert(`Saved! ${first} ${last} Has Made A Time Machine on ${LORE_DATE_STR}`);
+    });
+
+    function refreshSaveList(){
+      const box = $('#saveList');
+      const p = storage.get('tt_player', null);
+      box.innerHTML = '';
+      if(!p){ box.innerHTML = '<p class="muted">No saves yet.</p>'; return; }
+      const btn = document.createElement('button');
+      btn.className = 'btn';
+      btn.textContent = `Load ${p.first} ${p.last}`;
+      btn.onclick = () => { state.player = p; renderHUD(); alert(`Loaded ${p.first} ${p.last}`) };
+      box.appendChild(btn);
+      const del = document.createElement('button');
+      del.className = 'btn ghost';
+      del.style.marginLeft = '10px';
+      del.textContent = 'Delete Save';
+      del.onclick = () => { localStorage.removeItem('tt_player'); refreshSaveList(); };
+      box.appendChild(del);
+    }
+
+    function renderHUD(){
+      $('#hudName').textContent = state.player.first && state.player.last ? `${state.player.first} ${state.player.last}` : '—';
+      $('#hudYear').textContent = state.year;
+      $('#yearInput').value = state.year;
+    }
+
+    function pushLog(html){
+      const stamp = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      state.log.push({t: stamp, html});
+      if(state.log.length > 500) state.log.shift();
+      renderLog();
+      saveAll();
+    }
+
+    function renderLog(){
+      const el = $('#log');
+      el.innerHTML = state.log.map(entry => `<p><span class="muted">[${entry.t}]</span> ${entry.html}</p>`).join('');
+      el.scrollTop = el.scrollHeight;
+    }
+
+    // ========= Time travel =========
+    $('#btnJump').addEventListener('click', jumpYear);
+    $('#yearInput').addEventListener('keydown', e => { if(e.key==='Enter') jumpYear(); });
+
+    function jumpYear(){
+      const y = parseInt($('#yearInput').value, 10);
+      if(Number.isNaN(y)) return;
+      state.year = y;
+      renderHUD();
+      const who = state.player.first && state.player.last ? `${state.player.first} ${state.player.last}` : 'You';
+      pushLog(`<b>${who}</b> dial the chronometer to <b>${y}</b>. Reality flexes like glass.`);
+    }
+
+    // ========= AI =========
+    $('#btnAsk').addEventListener('click', async () => {
+      const text = $('#prompt').value.trim();
+      if(!text) return;
+      pushLog(`<i>You:</i> ${escapeHTML(text)}`);
+      $('#prompt').value = '';
+
+      try{
+        const provider = $('#aiProvider').value;
+        let reply = '';
+        if(provider === 'openai'){
+          const key = $('#openaiKey').value.trim();
+          if(!key){ pushLog(`<span class="muted">(No OpenAI key set — using mock.)</span>`); reply = await mockAI(text); }
+          else { reply = await openAI(text, key); }
+        } else {
+          reply = await mockAI(text);
+        }
+        pushLog(`<i>AI:</i> ${reply}`);
+      } catch(err){
+        console.error(err);
+        pushLog(`<span style="color:var(--bad)">Error:</span> ${(err && err.message)||err}`);
+      }
+    });
+
+    $('#btnClearLog').addEventListener('click', () => { state.log = []; renderLog(); saveAll(); });
+
+    async function mockAI(user){
+      // Lightweight offline narrative improv
+      const beats = [
+        `In ${state.year}, a cold wind slips under the lab door.`,
+        `Somewhere, a paradox sneezes.`,
+        `Your wrist-console blinks: <span class="kbd">Δt = ${(Math.abs(state.year-1984))}y</span>.`,
+        `A stranger watches from the threshold, eyes reflecting circuitry.`,
+        `Tape reels spin up and the floor vibrates.`
+      ];
+      const action = user.length > 140 ? 'You planned a lot. The machine respects ambition.' : 'The machine thrums, ready to misbehave.';
+      return `${action} ${beats[Math.floor(Math.random()*beats.length)]}`;
+    }
+
+    async function openAI(user, apiKey){
+      // Simple fetch to OpenAI Responses API. Suitable for local testing only.
+      const system = `You are the narrative engine for a time-travel sandbox game. Keep responses concise (1-4 sentences). Always weave in the current in-game year (${state.year}). Avoid explicit content.`;
+      const res = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          input: [
+            { role: 'system', content: system },
+            { role: 'user', content: user }
+          ]
+        })
+      });
+      if(!res.ok){
+        const txt = await res.text();
+        throw new Error(`OpenAI ${res.status}: ${txt}`);
+      }
+      const data = await res.json();
+      // Responses API: data.output_text is convenient if present
+      if (data.output_text) return escapeHTML(data.output_text);
+      // Fallbacks for other shapes
+      if (data.output && Array.isArray(data.output)){
+        const segments = data.output.map(x => typeof x === 'string' ? x : (x.content || x.text || '')).join(' ');
+        return escapeHTML(segments || '');
+      }
+      return escapeHTML(JSON.stringify(data));
+    }
+
+    function escapeHTML(s){
+      return s.replace(/[&<>\"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
+    }
+
+    // ========= Quick save/load =========
+    $('#btnQuickSave').addEventListener('click', () => { saveAll(); pushLog('<span style="color:var(--good)">Quick saved.</span>'); });
+    $('#btnQuickLoad').addEventListener('click', () => { loadAll(); pushLog('<span style="color:var(--good)">Quick loaded.</span>'); });
+
+    // ========= Boot =========
+    (function init(){
+      $('#yearNow').textContent = new Date().getFullYear();
+      loadAll();
+    })();
+  </script>
+</body>
+</html>
