@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ChronoCourier — A Time Travel IF</title>
+  <meta name="description" content="A text-based time travel adventure with AI-style narration.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>ChronoCourier</h1>
+    <div class="header-actions">
+      <button id="btnTheme" title="Toggle theme">🌗</button>
+      <button id="btnHelp" title="Help">❔</button>
+      <button id="btnSettings" title="Settings & Save">⚙️</button>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <section id="output" class="output" aria-live="polite"></section>
+
+    <form id="cmdForm" class="cmd-form" autocomplete="off">
+      <label for="cmdInput" class="sr-only">Command</label>
+      <input id="cmdInput" name="cmdInput" type="text" spellcheck="false" placeholder="Type a command (e.g., look, go north, time 1985)..." autofocus />
+      <button type="submit" class="run">▶</button>
+    </form>
+
+    <aside class="side">
+      <div class="panel">
+        <h2>Inventory</h2>
+        <ul id="inventoryList" class="list"></ul>
+      </div>
+      <div class="panel">
+        <h2>Status</h2>
+        <div id="statusText" class="status"></div>
+      </div>
+    </aside>
+  </main>
+
+  <dialog id="helpDialog">
+    <form method="dialog" class="dialog">
+      <h2>Help</h2>
+      <p>Try commands like: <code>look</code>, <code>go north</code>, <code>take shard</code>, <code>use key on door</code>, <code>time 2200</code>.</p>
+      <p>Tip: Items from one era may solve puzzles in another.</p>
+      <menu>
+        <button value="cancel">Close</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="settingsDialog">
+    <form method="dialog" class="dialog">
+      <h2>Settings & Save</h2>
+
+      <label>
+        Difficulty:
+        <select id="selDifficulty">
+          <option value="story">Story</option>
+          <option value="adventure" selected>Adventure</option>
+          <option value="hard">Hard</option>
+        </select>
+      </label>
+
+      <label>
+        Narrator Mood:
+        <select id="selMood">
+          <option value="neutral" selected>Neutral</option>
+          <option value="curious">Curious</option>
+          <option value="wry">Wry</option>
+          <option value="ominous">Ominous</option>
+        </select>
+      </label>
+
+      <fieldset>
+        <legend>Save/Load</legend>
+        <button id="btnSave">Save</button>
+        <button id="btnLoad">Load</button>
+        <button id="btnExport">Export</button>
+        <button id="btnImport">Import</button>
+        <input id="fileImport" type="file" accept="application/json" hidden />
+      </fieldset>
+
+      <menu>
+        <button value="cancel">Close</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <footer class="app-footer">
+    <small>© 2025 — ChronoCourier • MIT License</small>
+  </footer>
+
+  <script type="module" src="./js/game.js"></script>
+</body>
+</html>
